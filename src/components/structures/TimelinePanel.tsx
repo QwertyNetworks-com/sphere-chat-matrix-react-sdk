@@ -1408,8 +1408,13 @@ class TimelinePanel extends React.Component<IProps, IState> {
         // quite slow. So we detect that situation and shortcut straight to
         // calling _reloadEvents and updating the state.
 
-        const timeline = this.props.timelineSet.getTimelineForEvent(eventId);
-        if (timeline) {
+        let timeline: EventTimeline | null = null;
+        if (eventId) {
+            timeline = this.props.timelineSet.getTimelineForEvent(eventId);
+        } else {
+            timeline = this.props.timelineSet.getLiveTimeline();
+        }
+        if (timeline && timeline.getEvents().length) {
             // This is a hot-path optimization by skipping a promise tick
             // by repeating a no-op sync branch in TimelineSet.getTimelineForEvent & MatrixClient.getEventTimeline
             this.timelineWindow.load(eventId, INITIAL_SIZE); // in this branch this method will happen in sync time
@@ -1442,8 +1447,8 @@ class TimelinePanel extends React.Component<IProps, IState> {
     }
 
     // Force refresh the timeline before threads support pending events
-    public refreshTimeline(): void {
-        this.loadTimeline();
+    public refreshTimeline(eventId?: string): void {
+        this.loadTimeline(eventId, undefined, undefined, false);
         this.reloadEvents();
     }
 
