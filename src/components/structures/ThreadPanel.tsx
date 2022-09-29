@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { EventTimelineSet } from 'matrix-js-sdk/src/models/event-timeline-set';
 import { Thread, ThreadEvent } from 'matrix-js-sdk/src/models/thread';
 import { Room } from 'matrix-js-sdk/src/models/room';
@@ -230,6 +230,7 @@ const ThreadPanel: React.FC<IProps> = ({
 
     useEffect(() => {
         if (timelineSet && !Thread.hasServerSideSupport) {
+            timelineSet.resetLiveTimeline();
             timelinePanel.current.refreshTimeline();
         }
     }, [timelineSet, timelinePanel]);
@@ -239,6 +240,14 @@ const ThreadPanel: React.FC<IProps> = ({
             featureId: "feature_thread",
         });
     } : null;
+
+    const forceRefresh = useCallback(async () => {
+        console.error("forceRefresh");
+        timelineSet.resetLiveTimeline();
+        room.resetLiveTimeline();
+        await room.fetchRoomThreads();
+        timelinePanel?.current.refreshTimeline();
+    }, [room, timelineSet]);
 
     return (
         <RoomContext.Provider value={{
@@ -278,6 +287,7 @@ const ThreadPanel: React.FC<IProps> = ({
                     sensor={card.current}
                     onMeasurement={setNarrow}
                 />
+                <button onClick={forceRefresh}>Refresh</button>
                 { timelineSet
                     ? <TimelinePanel
                         key={timelineSet.getFilter()?.filterId ?? (roomId + ":" + filterOption)}
