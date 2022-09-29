@@ -14,49 +14,49 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { debounce, throttle } from 'lodash';
+import { EventType, RelationType } from 'matrix-js-sdk/src/@types/event';
+import { ReceiptType } from "matrix-js-sdk/src/@types/read_receipts";
+import { ClientEvent } from "matrix-js-sdk/src/client";
+import { MatrixError } from 'matrix-js-sdk/src/http-api';
+import { logger } from "matrix-js-sdk/src/logger";
+import { MatrixEvent, MatrixEventEvent } from "matrix-js-sdk/src/models/event";
+import { Direction, EventTimeline } from "matrix-js-sdk/src/models/event-timeline";
+import { EventTimelineSet, IRoomTimelineData } from "matrix-js-sdk/src/models/event-timeline-set";
+import { ReadReceipt } from 'matrix-js-sdk/src/models/read-receipt';
+import { NotificationCountType, Room, RoomEvent } from "matrix-js-sdk/src/models/room";
+import { RoomMember, RoomMemberEvent } from 'matrix-js-sdk/src/models/room-member';
+import { Thread } from 'matrix-js-sdk/src/models/thread';
+import { SyncState } from 'matrix-js-sdk/src/sync';
+import { TimelineWindow } from "matrix-js-sdk/src/timeline-window";
 import React, { createRef, ReactNode } from 'react';
 import ReactDOM from "react-dom";
-import { NotificationCountType, Room, RoomEvent } from "matrix-js-sdk/src/models/room";
-import { MatrixEvent, MatrixEventEvent } from "matrix-js-sdk/src/models/event";
-import { EventTimelineSet, IRoomTimelineData } from "matrix-js-sdk/src/models/event-timeline-set";
-import { Direction, EventTimeline } from "matrix-js-sdk/src/models/event-timeline";
-import { TimelineWindow } from "matrix-js-sdk/src/timeline-window";
-import { EventType, RelationType } from 'matrix-js-sdk/src/@types/event';
-import { SyncState } from 'matrix-js-sdk/src/sync';
-import { RoomMember, RoomMemberEvent } from 'matrix-js-sdk/src/models/room-member';
-import { debounce, throttle } from 'lodash';
-import { logger } from "matrix-js-sdk/src/logger";
-import { ClientEvent } from "matrix-js-sdk/src/client";
-import { Thread } from 'matrix-js-sdk/src/models/thread';
-import { ReceiptType } from "matrix-js-sdk/src/@types/read_receipts";
-import { MatrixError } from 'matrix-js-sdk/src/http-api';
-import { ReadReceipt } from 'matrix-js-sdk/src/models/read-receipt';
 
-import SettingsStore from "../../settings/SettingsStore";
-import { Layout } from "../../settings/enums/Layout";
+import { KeyBindingAction } from "../../accessibility/KeyboardShortcuts";
+import RoomContext, { TimelineRenderingType } from "../../contexts/RoomContext";
+import { Action } from '../../dispatcher/actions';
+import dis from "../../dispatcher/dispatcher";
+import { ActionPayload } from "../../dispatcher/payloads";
+import { ViewRoomPayload } from "../../dispatcher/payloads/ViewRoomPayload";
+import { haveRendererForEvent } from "../../events/EventTileFactory";
+import { getKeyBindingsManager } from "../../KeyBindingsManager";
 import { _t } from '../../languageHandler';
 import { MatrixClientPeg } from "../../MatrixClientPeg";
-import RoomContext, { TimelineRenderingType } from "../../contexts/RoomContext";
-import UserActivity from "../../UserActivity";
 import Modal from "../../Modal";
-import dis from "../../dispatcher/dispatcher";
-import { Action } from '../../dispatcher/actions';
-import Timer from '../../utils/Timer';
+import { Layout } from "../../settings/enums/Layout";
+import SettingsStore from "../../settings/SettingsStore";
 import shouldHideEvent from '../../shouldHideEvent';
+import UserActivity from "../../UserActivity";
 import { arrayFastClone } from "../../utils/arrays";
+import EditorStateTransfer from '../../utils/EditorStateTransfer';
+import { RoomPermalinkCreator } from "../../utils/permalinks/Permalinks";
+import ResizeNotifier from "../../utils/ResizeNotifier";
+import Timer from '../../utils/Timer';
+import ErrorDialog from '../views/dialogs/ErrorDialog';
+import Spinner from "../views/elements/Spinner";
+import LegacyCallEventGrouper, { buildLegacyCallEventGroupers } from "./LegacyCallEventGrouper";
 import MessagePanel from "./MessagePanel";
 import { IScrollState } from "./ScrollPanel";
-import { ActionPayload } from "../../dispatcher/payloads";
-import ResizeNotifier from "../../utils/ResizeNotifier";
-import { RoomPermalinkCreator } from "../../utils/permalinks/Permalinks";
-import Spinner from "../views/elements/Spinner";
-import EditorStateTransfer from '../../utils/EditorStateTransfer';
-import ErrorDialog from '../views/dialogs/ErrorDialog';
-import LegacyCallEventGrouper, { buildLegacyCallEventGroupers } from "./LegacyCallEventGrouper";
-import { ViewRoomPayload } from "../../dispatcher/payloads/ViewRoomPayload";
-import { getKeyBindingsManager } from "../../KeyBindingsManager";
-import { KeyBindingAction } from "../../accessibility/KeyboardShortcuts";
-import { haveRendererForEvent } from "../../events/EventTileFactory";
 
 const PAGINATE_SIZE = 20;
 const INITIAL_SIZE = 20;
@@ -1408,29 +1408,16 @@ class TimelinePanel extends React.Component<IProps, IState> {
         // quite slow. So we detect that situation and shortcut straight to
         // calling _reloadEvents and updating the state.
 
-        let timeline: EventTimeline | null = null;
-        if (eventId) {
-            timeline = this.props.timelineSet.getTimelineForEvent(eventId);
-        } else {
-            timeline = this.props.timelineSet.getLiveTimeline();
-        }
-        if (timeline && timeline.getEvents().length) {
-            // This is a hot-path optimization by skipping a promise tick
-            // by repeating a no-op sync branch in TimelineSet.getTimelineForEvent & MatrixClient.getEventTimeline
-            this.timelineWindow.load(eventId, INITIAL_SIZE); // in this branch this method will happen in sync time
-            onLoaded();
-        } else {
-            const prom = this.timelineWindow.load(eventId, INITIAL_SIZE);
-            this.buildLegacyCallEventGroupers();
-            this.setState({
-                events: [],
-                liveEvents: [],
-                canBackPaginate: false,
-                canForwardPaginate: false,
-                timelineLoading: true,
-            });
-            prom.then(onLoaded, onError);
-        }
+        const prom = this.timelineWindow.load(eventId, INITIAL_SIZE);
+        this.buildLegacyCallEventGroupers();
+        this.setState({
+            events: [],
+            liveEvents: [],
+            canBackPaginate: false,
+            canForwardPaginate: false,
+            timelineLoading: true,
+        });
+        prom.then(onLoaded, onError);
     }
 
     // handle the completion of a timeline load or localEchoUpdate, by

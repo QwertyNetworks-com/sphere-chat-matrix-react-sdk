@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { EventTimelineSet } from 'matrix-js-sdk/src/models/event-timeline-set';
 import { Thread, ThreadEvent } from 'matrix-js-sdk/src/models/thread';
 import { Room } from 'matrix-js-sdk/src/models/room';
@@ -241,14 +241,6 @@ const ThreadPanel: React.FC<IProps> = ({
         });
     } : null;
 
-    const forceRefresh = useCallback(async () => {
-        console.error("forceRefresh");
-        timelineSet.resetLiveTimeline();
-        room.resetLiveTimeline();
-        await room.fetchRoomThreads();
-        timelinePanel?.current.refreshTimeline();
-    }, [room, timelineSet]);
-
     return (
         <RoomContext.Provider value={{
             ...roomContext,
@@ -287,7 +279,6 @@ const ThreadPanel: React.FC<IProps> = ({
                     sensor={card.current}
                     onMeasurement={setNarrow}
                 />
-                <button onClick={forceRefresh}>Refresh</button>
                 { timelineSet
                     ? <TimelinePanel
                         key={timelineSet.getFilter()?.filterId ?? (roomId + ":" + filterOption)}

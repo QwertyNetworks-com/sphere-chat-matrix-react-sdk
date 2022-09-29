@@ -244,8 +244,7 @@ export default class ThreadView extends React.Component<IProps, IState> {
         direction = Direction.Backward,
         limit = 20,
     ): Promise<boolean> => {
-        timelineWindow.paginate(direction, limit);
-        return true;
+        return timelineWindow.paginate(direction, limit);
     };
 
     private onFileDrop = (dataTransfer: DataTransfer) => {
