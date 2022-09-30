@@ -1,5 +1,5 @@
 /*
-Copyright 2015-2021 The Matrix.org Foundation C.I.C.
+Copyright 2015-2022 The Matrix.org Foundation C.I.C.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -138,6 +138,7 @@ import { UseCaseSelection } from '../views/elements/UseCaseSelection';
 import { ValidatedServerConfig } from '../../utils/ValidatedServerConfig';
 import { isLocalRoom } from '../../utils/localRoom/isLocalRoom';
 import RendezvousDialog from '../views/dialogs/RendezvousDialog';
+import { createLocalNotificationSettingsIfNeeded } from '../../utils/notifications';
 
 // legacy export
 export { default as Views } from "../../Views";
@@ -400,6 +401,8 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             this.startPageChangeTimer();
         }
     }
+
+    private get cli(): MatrixClient { return MatrixClientPeg.get(); }
 
     public componentDidMount(): void {
         window.addEventListener("resize", this.onWindowResized);
@@ -1267,6 +1270,8 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
         this.themeWatcher.recheck();
         StorageManager.tryPersistStorage();
 
+        this.cli.on(ClientEvent.Sync, this.onInitialSync);
+
         if (
             MatrixClientPeg.currentUserIsJustRegistered() &&
             SettingsStore.getValue("FTUE.useCaseSelection") === null
@@ -1292,6 +1297,14 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
             return this.onShowPostLoginScreen();
         }
     }
+
+    private onInitialSync = (): void => {
+        if (this.cli.isInitialSyncComplete()) {
+            this.cli.off(ClientEvent.Sync, this.onInitialSync);
+        }
+
+        createLocalNotificationSettingsIfNeeded(this.cli);
+    };
 
     private async onShowPostLoginScreen(useCase?: UseCase) {
         if (useCase) {
