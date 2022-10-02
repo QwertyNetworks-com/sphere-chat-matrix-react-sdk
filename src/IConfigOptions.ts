@@ -183,7 +183,7 @@ export interface IConfigOptions {
     // XXX: Undocumented URL for the "Learn more about spaces" link in the "Communities don't exist" messaging.
     spaces_learn_more_url?: string;
 
-    rendezvous?: {
+    login_with_qr?: {
         disabled?: boolean;
         default_http_transport_server?: string;
     };

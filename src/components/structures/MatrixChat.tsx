@@ -137,7 +137,6 @@ import { TimelineRenderingType } from "../../contexts/RoomContext";
 import { UseCaseSelection } from '../views/elements/UseCaseSelection';
 import { ValidatedServerConfig } from '../../utils/ValidatedServerConfig';
 import { isLocalRoom } from '../../utils/localRoom/isLocalRoom';
-import RendezvousDialog from '../views/dialogs/RendezvousDialog';
 import { createLocalNotificationSettingsIfNeeded } from '../../utils/notifications';
 
 // legacy export
@@ -691,15 +690,6 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
                 Modal.createDialog(UserSettingsDialog,
                     { initialTabId: tabPayload.initialTabId },
                     /*className=*/null, /*isPriority=*/false, /*isStatic=*/true);
-
-                // View the welcome or home page if we need something to look at
-                this.viewSomethingBehindModal();
-                break;
-            }
-            case Action.LinkAnotherDevice: {
-                Modal.createDialog(RendezvousDialog,
-                    { device: 'existing' },
-                    /*className=*/"mx_RendezvousDialog_wrapper", /*isPriority=*/false, /*isStatic=*/true);
 
                 // View the welcome or home page if we need something to look at
                 this.viewSomethingBehindModal();

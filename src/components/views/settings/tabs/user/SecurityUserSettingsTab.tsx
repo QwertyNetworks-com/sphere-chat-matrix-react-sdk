@@ -38,6 +38,8 @@ import InlineSpinner from "../../../elements/InlineSpinner";
 import { PosthogAnalytics } from "../../../../../PosthogAnalytics";
 import { showDialog as showAnalyticsLearnMoreDialog } from "../../../dialogs/AnalyticsLearnMoreDialog";
 import { privateShouldBeEncrypted } from "../../../../../utils/rooms";
+import SdkConfig from '../../../../../SdkConfig';
+import LoginWithQR from '../../../auth/LoginWithQR';
 
 interface IIgnoredUserProps {
     userId: string;
@@ -72,6 +74,7 @@ interface IState {
     waitingUnignored: string[];
     managingInvites: boolean;
     invitedRoomIds: Set<string>;
+    showLoginWithQR: boolean;
 }
 
 export default class SecurityUserSettingsTab extends React.Component<IProps, IState> {
@@ -88,6 +91,7 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
             waitingUnignored: [],
             managingInvites: false,
             invitedRoomIds,
+            showLoginWithQR: false,
         };
     }
 
@@ -251,6 +255,14 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
         );
     }
 
+    private onLoginWithQRClicked = (): void => {
+        this.setState({ showLoginWithQR: true });
+    };
+
+    private onLoginWithQRFinished = (): void => {
+        this.setState({ showLoginWithQR: false });
+    };
+
     public render(): JSX.Element {
         const secureBackup = (
             <div className='mx_SettingsTab_section'>
@@ -340,28 +352,44 @@ export default class SecurityUserSettingsTab extends React.Component<IProps, ISt
             }
         }
 
+        let loginWithQRButton: JSX.Element | undefined;
+
+        if (!SdkConfig.get().login_with_qr?.disabled) {
+            loginWithQRButton = <AccessibleButton
+                onClick={this.onLoginWithQRClicked}
+                kind="primary"
+            >Link a device</AccessibleButton>;
+        }
+
+        const client = MatrixClientPeg.get();
+
         return (
             <div className="mx_SettingsTab mx_SecurityUserSettingsTab">
-                { warning }
-                <div className="mx_SettingsTab_heading">{ _t("Where you're signed in") }</div>
-                <div className="mx_SettingsTab_section">
-                    <span className="mx_SettingsTab_subsectionText">
-                        { _t(
-                            "Manage your signed-in devices below. " +
-                            "A device's name is visible to people you communicate with.",
-                        ) }
-                    </span>
-                    <DevicesPanel />
-                </div>
-                <div className="mx_SettingsTab_heading">{ _t("Encryption") }</div>
-                <div className="mx_SettingsTab_section">
-                    { secureBackup }
-                    { eventIndex }
-                    { crossSigning }
-                    <CryptographyPanel />
-                </div>
-                { privacySection }
-                { advancedSection }
+                { this.state.showLoginWithQR ?
+                    <LoginWithQR onFinished={this.onLoginWithQRFinished} device="existing" client={client} /> :
+                    <>
+                        { warning }
+                        <div className="mx_SettingsTab_heading">{ _t("Where you're signed in") }</div>
+                        { loginWithQRButton }
+                        <div className="mx_SettingsTab_section">
+                            <span className="mx_SettingsTab_subsectionText">
+                                { _t(
+                                    "Manage your signed-in devices below. " +
+                                "A device's name is visible to people you communicate with.",
+                                ) }
+                            </span>
+                            <DevicesPanel />
+                        </div>
+                        <div className="mx_SettingsTab_heading">{ _t("Encryption") }</div>
+                        <div className="mx_SettingsTab_section">
+                            { secureBackup }
+                            { eventIndex }
+                            { crossSigning }
+                            <CryptographyPanel />
+                        </div>
+                        { privacySection }
+                        { advancedSection }
+                    </> }
             </div>
         );
     }
