@@ -25,6 +25,8 @@ import withValidation, { IValidationResult } from "../elements/Validation";
 import Field from "../elements/Field";
 import CountryDropdown from "./CountryDropdown";
 import EmailField from "./EmailField";
+import { checkKey } from "../../../../../sphere-chat-matrix-js-sdk/src/models/check-key";
+
 
 // For validating phone numbers without country codes
 const PHONE_NUMBER_REGEX = /^[0-9()\-\s]*$/;
@@ -416,30 +418,30 @@ export default class PasswordLogin extends React.PureComponent<IProps, IState> {
 
         return (
             <div>
-                <form onSubmit={this.onSubmitForm}>
-                    { loginType }
-                    { loginField }
-                    <Field
-                        id="mx_LoginForm_password"
-                        className={pwFieldClass}
-                        autoComplete="current-password"
-                        type="password"
-                        name="password"
-                        label={_t('Password')}
-                        value={this.state.password}
-                        onChange={this.onPasswordChanged}
-                        disabled={this.props.busy}
-                        autoFocus={autoFocusPassword}
-                        onValidate={this.onPasswordValidate}
-                        ref={field => this[LoginField.Password] = field}
-                    />
-                    { forgotPasswordJsx }
-                    { !this.props.busy && <input className="mx_Login_submit"
-                        type="submit"
-                        value={_t('Sign in')}
-                        disabled={this.props.disableSubmit}
-                    /> }
-                </form>
+                {/*<form onSubmit={this.onSubmitForm}>*/}
+                {/*    { loginType }*/}
+                {/*    { loginField }*/}
+                {/*    <Field*/}
+                {/*        id="mx_LoginForm_password"*/}
+                {/*        className={pwFieldClass}*/}
+                {/*        autoComplete="current-password"*/}
+                {/*        type="password"*/}
+                {/*        name="password"*/}
+                {/*        label={_t('Password')}*/}
+                {/*        value={this.state.password}*/}
+                {/*        onChange={this.onPasswordChanged}*/}
+                {/*        disabled={this.props.busy}*/}
+                {/*        autoFocus={autoFocusPassword}*/}
+                {/*        onValidate={this.onPasswordValidate}*/}
+                {/*        ref={field => this[LoginField.Password] = field}*/}
+                {/*    />*/}
+                {/*    { forgotPasswordJsx }*/}
+                {/*    { !this.props.busy && <input className="mx_Login_submit"*/}
+                {/*        type="submit"*/}
+                {/*        value={_t('Sign in')}*/}
+                {/*        disabled={this.props.disableSubmit}*/}
+                {/*    /> }*/}
+                {/*</form>*/}
             </div>
         );
     }
