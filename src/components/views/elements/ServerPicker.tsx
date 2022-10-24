@@ -85,18 +85,18 @@ const ServerPicker = ({ title, dialogTitle, serverConfig, onServerConfigChange }
     }
 
     return <div className="mx_ServerPicker">
-        <h2>{ title || _t("Homeserver") }</h2>
-        { !disableCustomUrls ? (
-            <AccessibleButton
-                className="mx_ServerPicker_help"
-                onClick={onHelpClick}
-                aria-label={_t("Help")}
-            />): null }
-        <span className="mx_ServerPicker_server" title={typeof serverName === "string" ? serverName : undefined}>
-            { serverName }
-        </span>
-        { editBtn }
-        { desc }
+        {/*<h2>{ title || _t("Homeserver") }</h2>*/}
+        {/*{ !disableCustomUrls ? (*/}
+        {/*    <AccessibleButton*/}
+        {/*        className="mx_ServerPicker_help"*/}
+        {/*        onClick={onHelpClick}*/}
+        {/*        aria-label={_t("Help")}*/}
+        {/*    />): null }*/}
+        {/*<span className="mx_ServerPicker_server" title={typeof serverName === "string" ? serverName : undefined}>*/}
+        {/*    { serverName }*/}
+        {/*</span>*/}
+        {/*{ editBtn }*/}
+        {/*{ desc }*/}
     </div>;
 };
 
