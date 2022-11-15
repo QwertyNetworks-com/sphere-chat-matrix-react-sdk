@@ -1850,7 +1850,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
     }
 
     private onRegisterClick = () => {
-        location.href = "https://register.sphere.chat";
+        this.showScreen("register");
     };
 
     private onLoginClick = () => {
