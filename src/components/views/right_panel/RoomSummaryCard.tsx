@@ -316,9 +316,9 @@ const RoomSummaryCard: React.FC<IProps> = ({ room, onClose }) => {
                         { pinCount }
                     </span> }
                 </Button> }
-            { !isVideoRoom && <Button className="mx_RoomSummaryCard_icon_export" onClick={onRoomExportClick}>
-                { _t("Export chat") }
-            </Button> }
+            {/*{ !isVideoRoom && <Button className="mx_RoomSummaryCard_icon_export" onClick={onRoomExportClick}>*/}
+            {/*    { _t("Export chat") }*/}
+            {/*</Button> }*/}
             <Button className="mx_RoomSummaryCard_icon_share" onClick={onShareRoomClick}>
                 { _t("Share room") }
             </Button>
