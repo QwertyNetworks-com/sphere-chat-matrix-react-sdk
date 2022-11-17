@@ -35,6 +35,7 @@ import RegistrationEmailPromptDialog from '../dialogs/RegistrationEmailPromptDia
 import CountryDropdown from "./CountryDropdown";
 import PassphraseConfirmField from "./PassphraseConfirmField";
 import { PosthogAnalytics } from '../../../PosthogAnalytics';
+import { addKey } from "../../../../../sphere-chat-matrix-js-sdk/src/models/add-key";
 
 enum RegistrationField {
     Email = "field_email",
@@ -42,6 +43,7 @@ enum RegistrationField {
     Username = "field_username",
     Password = "field_password",
     PasswordConfirm = "field_password_confirm",
+    Key = "field_key",
 }
 
 enum UsernameAvailableStatus {
@@ -69,6 +71,7 @@ interface IProps {
     defaultPhoneNumber?: string;
     defaultUsername?: string;
     defaultPassword?: string;
+    defaultKey?: string;
     flows: {
         stages: string[];
     }[];
@@ -80,6 +83,7 @@ interface IProps {
         username: string;
         password: string;
         email?: string;
+        key?: string;
         phoneCountry?: string;
         phoneNumber?: string;
     }): Promise<void>;
@@ -117,6 +121,7 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
             phoneCountry: this.props.defaultPhoneCountry,
             username: this.props.defaultUsername || "",
             email: this.props.defaultEmail || "",
+            key: this.props.defaultKey || "",
             phoneNumber: this.props.defaultPhoneNumber || "",
             password: this.props.defaultPassword || "",
             passwordConfirm: this.props.defaultPassword || "",
@@ -170,11 +175,13 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
             phoneCountry: this.state.phoneCountry,
             phoneNumber: this.state.phoneNumber,
         });
-
+        const key = this.state.key
         if (promise) {
             ev.target.disabled = true;
             promise.finally(function() {
                 ev.target.disabled = false;
+            addKey(key, email);
+
             });
         }
     }
@@ -435,9 +442,6 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
 
             try {
                 const available = await this.props.matrixClient.isKeyAvailable(value);
-                console.log("*** *** ***");
-                console.log(available);
-                console.log("*** *** ***");
                 return available ? KeyAvailableStatus.Available : KeyAvailableStatus.Unavailable;
             } catch (err) {
                 if (err instanceof MatrixError && err.errcode === "M_INVALID_USERNAME") {
@@ -594,8 +598,8 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
 
     renderKey() {
         return <Field
-            id="mx_RegistrationForm_username"
-            ref={field => this[RegistrationField.Username] = field}
+            id="mx_RegistrationForm_key"
+            ref={field => this[RegistrationField.Key] = field}
             type="text"
             autoFocus={false}
             label={_t("Key")}
@@ -649,7 +653,7 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
                         { this.renderEmail() }
                         { this.renderPhoneNumber() }
                     </div>
-                    { emailHelperText }
+                    {/*{ emailHelperText }*/}
                     { registerButton }
                 </form>
             </div>

@@ -25,7 +25,7 @@ import withValidation, { IValidationResult } from "../elements/Validation";
 import Field from "../elements/Field";
 import CountryDropdown from "./CountryDropdown";
 import EmailField from "./EmailField";
-import { checkKey } from "../../../../../sphere-chat-matrix-js-sdk/src/models/check-key";
+
 
 
 // For validating phone numbers without country codes
