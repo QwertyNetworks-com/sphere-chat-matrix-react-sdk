@@ -52,6 +52,14 @@ enum UsernameAvailableStatus {
     Invalid,
 }
 
+enum KeyAvailableStatus {
+    Unknown,
+    Available,
+    Unavailable,
+    Error,
+    Invalid,
+}
+
 export const PASSWORD_MIN_SCORE = 3; // safely unguessable: moderate protection from offline slow-hash scenario.
 
 interface IProps {
@@ -84,6 +92,7 @@ interface IState {
     // The ISO2 country code selected in the phone number entry
     phoneCountry: string;
     username: string;
+    key: string;
     email: string;
     phoneNumber: string;
     password: string;
@@ -343,8 +352,20 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
         });
     };
 
+    private onKeyChange = ev => {
+        this.setState({
+            key: ev.target.value,
+        });
+    };
+
     private onUsernameValidate = async fieldState => {
         const result = await this.validateUsernameRules(fieldState);
+        this.markFieldValid(RegistrationField.Username, result.valid);
+        return result;
+    };
+
+    private onKeyValidate = async fieldState => {
+        const result = await this.validateKeyRules(fieldState);
         this.markFieldValid(RegistrationField.Username, result.valid);
         return result;
     };
@@ -396,6 +417,60 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
                 invalid: (usernameAvailable) => usernameAvailable === UsernameAvailableStatus.Error
                     ? _t("Unable to check if username has been taken. Try again later.")
                     : _t("Someone already has that username. Try another or if it is you, sign in below."),
+            },
+        ],
+    });
+
+    private validateKeyRules = withValidation<this, KeyAvailableStatus>({
+        description: (_, results) => {
+            // omit the description if the only failing result is the `available` one as it makes no sense for it.
+            if (results.every(({ key, valid }) => key === "available" || valid)) return;
+            // return _t("Use lowercase letters, numbers, dashes and underscores only");
+        },
+        hideDescriptionIfValid: true,
+        async deriveData(this: RegistrationForm, { value }) {
+            if (!value) {
+                return KeyAvailableStatus.Unknown;
+            }
+
+            try {
+                const available = await this.props.matrixClient.isKeyAvailable(value);
+                console.log("*** *** ***");
+                console.log(available);
+                console.log("*** *** ***");
+                return available ? KeyAvailableStatus.Available : KeyAvailableStatus.Unavailable;
+            } catch (err) {
+                if (err instanceof MatrixError && err.errcode === "M_INVALID_USERNAME") {
+                    return KeyAvailableStatus.Invalid;
+                }
+                return KeyAvailableStatus.Error;
+            }
+        },
+        rules: [
+            {
+                key: "required",
+                test: ({ value, allowEmpty }) => allowEmpty || !!value,
+                invalid: () => _t("Enter username"),
+            },
+            // {
+            //     key: "safeLocalpart",
+            //     test: ({ value }, usernameAvailable) => (!value || SAFE_LOCALPART_REGEX.test(value))
+            //         && usernameAvailable !== UsernameAvailableStatus.Invalid,
+            //     invalid: () => _t("Some characters not allowed"),
+            // },
+            {
+                key: "available",
+                final: true,
+                test: async ({ value }, keyAvailable) => {
+                    if (!value) {
+                        return true;
+                    }
+
+                    return keyAvailable === KeyAvailableStatus.Available;
+                },
+                invalid: (usernameAvailable) => usernameAvailable === KeyAvailableStatus.Error
+                    ? _t("Unable to check if username has been taken. Try again later.")
+                    : _td("Ключ недоступен"),
             },
         ],
     });
@@ -517,6 +592,20 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
         />;
     }
 
+    renderKey() {
+        return <Field
+            id="mx_RegistrationForm_username"
+            ref={field => this[RegistrationField.Username] = field}
+            type="text"
+            autoFocus={false}
+            label={_t("Key")}
+            placeholder={_t("Key").toLocaleLowerCase()}
+            value={this.state.key}
+            onChange={this.onKeyChange}
+            onValidate={this.onKeyValidate}
+        />;
+    }
+
     render() {
         const registerButton = (
             <input className="mx_Login_submit" type="submit" value={_t("Register")} disabled={!this.props.canSubmit} />
@@ -552,6 +641,9 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
                     <div className="mx_AuthBody_fieldRow">
                         { this.renderPassword() }
                         { this.renderPasswordConfirm() }
+                    </div>
+                    <div className="mx_AuthBody_fieldRow">
+                        { this.renderKey() }
                     </div>
                     <div className="mx_AuthBody_fieldRow">
                         { this.renderEmail() }
