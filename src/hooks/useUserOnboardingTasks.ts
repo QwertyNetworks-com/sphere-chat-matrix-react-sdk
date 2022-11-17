@@ -92,23 +92,23 @@ const tasks: InternalUserOnboardingTask[] = [
             onClick: onClickStartDm,
         },
     },
-    {
-        id: "download-apps",
-        title: () => _t("Download %(brand)s", {
-            brand: SdkConfig.get("brand"),
-        }),
-        description: () => _t("Don’t miss a thing by taking %(brand)s with you", {
-            brand: SdkConfig.get("brand"),
-        }),
-        completed: (ctx: UserOnboardingContext) => ctx.hasDevices,
-        action: {
-            label: _t("Download apps"),
-            onClick: (ev: ButtonEvent) => {
-                PosthogTrackers.trackInteraction("WebUserOnboardingTaskDownloadApps", ev);
-                Modal.createDialog(AppDownloadDialog, {}, "mx_AppDownloadDialog_wrapper", false, true);
-            },
-        },
-    },
+    // {
+    //     id: "download-apps",
+    //     title: () => _t("Download %(brand)s", {
+    //         brand: SdkConfig.get("brand"),
+    //     }),
+    //     description: () => _t("Don’t miss a thing by taking %(brand)s with you", {
+    //         brand: SdkConfig.get("brand"),
+    //     }),
+    //     completed: (ctx: UserOnboardingContext) => ctx.hasDevices,
+    //     action: {
+    //         label: _t("Download apps"),
+    //         onClick: (ev: ButtonEvent) => {
+    //             PosthogTrackers.trackInteraction("WebUserOnboardingTaskDownloadApps", ev);
+    //             Modal.createDialog(AppDownloadDialog, {}, "mx_AppDownloadDialog_wrapper", false, true);
+    //         },
+    //     },
+    // },
     {
         id: "setup-profile",
         title: _t("Set up your profile"),
