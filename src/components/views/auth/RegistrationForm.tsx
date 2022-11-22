@@ -83,7 +83,7 @@ interface IProps {
         username: string;
         password: string;
         email?: string;
-        key?: string;
+        key: string;
         phoneCountry?: string;
         phoneNumber?: string;
     }): Promise<void>;
