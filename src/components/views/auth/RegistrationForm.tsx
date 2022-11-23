@@ -598,6 +598,7 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
 
     renderKey() {
         return <Field
+            required
             id="mx_RegistrationForm_key"
             ref={field => this[RegistrationField.Key] = field}
             type="text"
