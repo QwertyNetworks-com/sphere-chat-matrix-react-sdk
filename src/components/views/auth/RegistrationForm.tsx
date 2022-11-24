@@ -198,6 +198,7 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
             RegistrationField.Username,
             RegistrationField.Password,
             RegistrationField.PasswordConfirm,
+            RegistrationField.Key,
             RegistrationField.Email,
             RegistrationField.PhoneNumber,
         ];
@@ -437,7 +438,7 @@ export default class RegistrationForm extends React.PureComponent<IProps, IState
         hideDescriptionIfValid: true,
         async deriveData(this: RegistrationForm, { value }) {
             if (!value) {
-                return KeyAvailableStatus.Unknown;
+                return KeyAvailableStatus.Error;
             }
 
             try {
